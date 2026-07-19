@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="לוגו מורקפה">
+  <circle cx="48" cy="48" r="46" fill="#FFFDF8"></circle>
+  <circle cx="48" cy="48" r="45.2" fill="none" stroke="#2A241E" stroke-width="1.6"></circle>
+  <circle cx="48" cy="48" r="40" fill="none" stroke="#C9A45E" stroke-width="1" opacity="0.8"></circle>
+  <path d="M48 31 L39.5 22.5 M48 31 L57.5 24" stroke="#A8713A" stroke-width="2.4" stroke-linecap="round" fill="none"></path>
+  <path d="M48 27 v8" stroke="#7C4F26" stroke-width="2.4" stroke-linecap="round"></path>
+  <g stroke="#FFFDF8" stroke-width="1.5">
+    <rect x="-7" y="-7" width="14" height="14" rx="5" fill="#6E4A25" transform="translate(48 65) rotate(45)"></rect>
+    <rect x="-7" y="-7" width="14" height="14" rx="5" fill="#875731" transform="translate(40 56) rotate(45)"></rect>
+    <rect x="-7" y="-7" width="14" height="14" rx="5" fill="#875731" transform="translate(56 56) rotate(45)"></rect>
+    <rect x="-7" y="-7" width="14" height="14" rx="5" fill="#A8713A" transform="translate(32 47) rotate(45)"></rect>
+    <rect x="-7" y="-7" width="14" height="14" rx="5" fill="#A8713A" transform="translate(64 47) rotate(45)"></rect>
+    <rect x="-7" y="-7" width="14" height="14" rx="5" fill="#A8713A" transform="translate(48 47) rotate(45)"></rect>
+    <rect x="-7" y="-7" width="14" height="14" rx="5" fill="#C9A45E" transform="translate(40 38) rotate(45)"></rect>
+    <rect x="-7" y="-7" width="14" height="14" rx="5" fill="#C9A45E" transform="translate(56 38) rotate(45)"></rect>
+  </g>
+</svg>
