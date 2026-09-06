@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow, noarchive" />
+<title>ניהול הודעות · מורקפה</title>
+<meta name="theme-color" content="#FEF4F5" />
+<link rel="icon" href="assets/img/logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Karantina:wght@400;700&family=Amatic+SC:wght@700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/style.css?v=5.1" />
+<style>
+  body { background: var(--paper); background-image: var(--doodles); background-size: 300px 300px; }
+
+  .adm-wrap { width: 100%; max-width: 980px; margin-inline: auto; padding: 0 18px 120px; }
+
+  .adm-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 18px 0 22px; flex-wrap: wrap;
+  }
+  .adm-brand { display: flex; align-items: center; gap: 12px; }
+  .adm-brand img {
+    width: 54px; height: 54px; border-radius: 50%; background: #fff; padding: 3px;
+    border: 2px solid var(--ink); object-fit: contain; box-shadow: var(--pop-sm);
+  }
+  .adm-brand h1 { font-family: var(--display); font-weight: 700; font-size: 2.4rem; line-height: .95; }
+  .adm-brand p { font-family: var(--hand); font-size: 1.3rem; color: var(--blue); line-height: 1; }
+
+  .adm-card {
+    background: var(--white); border: 2.5px solid var(--ink); border-radius: var(--radius-lg);
+    box-shadow: var(--pop); padding: 22px; margin-bottom: 20px;
+  }
+  /* direct child only — the live preview inside the card must keep the real
+     site's modal typography, not the admin card heading size */
+  .adm-card > h2 {
+    font-family: var(--display); font-weight: 700; font-size: 2rem; line-height: 1;
+    margin-bottom: 4px;
+  }
+  .adm-card .adm-hint { color: var(--ink-soft); font-size: .95rem; margin-bottom: 16px; }
+
+  /* ---------- login ---------- */
+  .adm-login { max-width: 440px; margin: 40px auto; }
+
+  /* ---------- fields ---------- */
+  .adm-field { margin-bottom: 16px; }
+  .adm-field label { display: block; font-weight: 800; font-size: 1rem; margin-bottom: 6px; }
+  .adm-field .adm-sub { font-weight: 400; color: var(--ink-soft); font-size: .88rem; }
+  .adm-field input[type="text"],
+  .adm-field input[type="password"],
+  .adm-field input[type="url"],
+  .adm-field textarea {
+    width: 100%; font-family: var(--body); font-size: 1.02rem; color: var(--ink);
+    background: var(--paper); border: 2px solid var(--ink); border-radius: 12px;
+    padding: 12px 14px; line-height: 1.6;
+  }
+  .adm-field textarea { min-height: 130px; resize: vertical; }
+  .adm-field input:focus-visible, .adm-field textarea:focus-visible { outline: 3px solid var(--honey); outline-offset: 1px; }
+  .adm-count { text-align: end; font-size: .8rem; color: var(--ink-soft); margin-top: 4px; }
+
+  /* inline errors sit under the field they belong to */
+  .adm-err {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 6px; font-weight: 700; font-size: .9rem; color: #8C1D2E;
+  }
+  .adm-err::before { content: "!"; display: grid; place-items: center;
+    width: 18px; height: 18px; border-radius: 50%; flex: 0 0 auto;
+    background: #8C1D2E; color: #fff; font-size: .78rem; }
+  .adm-field.has-err input, .adm-field.has-err textarea { border-color: #8C1D2E; }
+
+  /* password reveal */
+  .adm-pw { position: relative; }
+  .adm-pw input { padding-inline-end: 92px; }
+  .adm-pw button {
+    position: absolute; inset-inline-end: 6px; top: 50%; transform: translateY(-50%);
+    padding: 8px 12px; min-height: 36px; border-radius: 9px;
+    background: var(--white); color: var(--ink); border: 1.5px solid var(--ink);
+    font-family: var(--body); font-weight: 700; font-size: .85rem; cursor: pointer;
+  }
+  .adm-row { display: grid; gap: 16px; }
+  @media (min-width: 720px) { .adm-row { grid-template-columns: 1fr 1fr; } }
+
+  /* ---------- the big on/off switch ---------- */
+  .adm-switchcard {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    background: var(--sand); border: 2.5px solid var(--ink); border-radius: var(--radius-lg);
+    box-shadow: var(--pop); padding: 18px 20px; margin-bottom: 20px;
+  }
+  .adm-switchcard .adm-state { display: flex; align-items: center; gap: 12px; }
+  .adm-dot {
+    width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--ink);
+    background: #fff; flex: 0 0 auto;
+  }
+  .adm-switchcard.on .adm-dot { background: #2FA84F; }
+  .adm-switchcard.on { background: #E8F7EC; }
+  .adm-state b { display: block; font-size: 1.25rem; line-height: 1.2; }
+  .adm-state span { font-size: .9rem; color: var(--ink-soft); }
+
+  .adm-switch {
+    position: relative; width: 96px; height: 48px; flex: 0 0 auto; padding: 0;
+    border: 2.5px solid var(--ink); border-radius: 999px; background: #fff;
+    box-shadow: var(--pop-sm); cursor: pointer; transition: background .2s ease;
+  }
+  /* RTL page: the knob rests on the right (off) and slides left when on */
+  .adm-switch::after {
+    content: ""; position: absolute; top: 4px; right: 4px;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--ink); transition: transform .22s cubic-bezier(.3,.9,.3,1.2);
+  }
+  .adm-switch[aria-checked="true"] { background: #2FA84F; }
+  .adm-switch[aria-checked="true"]::after { transform: translateX(-47px); background: #fff; }
+
+  /* ---------- presets ---------- */
+  .adm-presets { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+  .adm-preset {
+    font-family: var(--body); font-weight: 700; font-size: .92rem;
+    padding: 9px 16px; border-radius: 999px; cursor: pointer;
+    background: var(--white); color: var(--ink); border: 2px solid var(--ink);
+    box-shadow: var(--pop-sm); transition: background .15s ease, transform .15s ease;
+  }
+  .adm-preset:hover { background: var(--honey); transform: translate(-1px, -1px); }
+
+  /* ---------- live preview ---------- */
+  .adm-preview-stage {
+    background: var(--sky-soft); border: 2.5px dashed var(--ink); border-radius: var(--radius-lg);
+    padding: 40px 18px 26px; margin-top: 6px;
+  }
+  /* show the real card, tilt and all — only the entrance animation is dropped */
+  .adm-preview-stage .mc-modal-card {
+    transform: rotate(var(--mc-tilt)); transition: none; opacity: 1;
+    margin-inline: auto; max-width: 500px;
+  }
+  .adm-preview-stage .mc-modal-close { pointer-events: none; }
+  .adm-preview-stage .btn { pointer-events: none; }
+
+  /* ---------- save bar ---------- */
+  .adm-savebar {
+    position: fixed; inset-inline: 0; bottom: 0; z-index: 40;
+    background: rgba(254, 244, 245, .96); border-top: 2.5px solid var(--ink);
+    padding: 12px 18px; display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .adm-savebar .adm-meta { font-size: .88rem; color: var(--ink-soft); }
+  .adm-savebar .adm-unsaved { display: none; font-weight: 800; color: var(--honey-deep); }
+  .adm-savebar.dirty .adm-unsaved { display: inline; }
+  /* the reversible off-switch is spaced away from the primary action */
+  .adm-savebar .adm-actions { display: inline-flex; align-items: center; gap: 18px; }
+
+  /* ---------- toast ---------- */
+  .adm-toast {
+    position: fixed; bottom: 86px; inset-inline-start: 50%; transform: translateX(50%) translateY(20px);
+    z-index: 60; max-width: min(420px, calc(100vw - 32px));
+    background: var(--ink); color: var(--paper);
+    border: 2px solid var(--ink); border-radius: 999px;
+    padding: 12px 24px; font-weight: 800; font-size: .98rem; text-align: center;
+    box-shadow: 3px 3px 0 var(--honey);
+    opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+  }
+  .adm-toast.show { opacity: 1; transform: translateX(50%) translateY(0); }
+  .adm-toast.err { background: #8C1D2E; border-color: #8C1D2E; box-shadow: 3px 3px 0 var(--ink); }
+
+  /* brand rule: no yellow anywhere — alerts use the rose surface */
+  .adm-alert {
+    background: var(--sky); border: 2px solid var(--ink); border-radius: 14px;
+    padding: 14px 16px; margin-bottom: 18px; font-size: .95rem; line-height: 1.6;
+  }
+  .adm-alert b { display: block; margin-bottom: 4px; font-size: 1.05rem; }
+  .adm-alert ol { margin: 8px 20px 0; list-style: decimal; }
+  .adm-alert code {
+    background: #fff; border: 1px solid var(--line); border-radius: 6px;
+    padding: 1px 6px; font-size: .9em; direction: ltr; display: inline-block;
+  }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="adm-wrap">
+
+  <header class="adm-head">
+    <div class="adm-brand">
+      <img src="assets/img/logo.png" alt="לוגו מורקפה" />
+      <div>
+        <h1>ניהול הודעות</h1>
+        <p>מורקפה · ההודעה הקופצת באתר</p>
+      </div>
+    </div>
+    <div>
+      <a class="btn btn-ghost" href="index.html">חזרה לאתר</a>
+      <button class="btn btn-ghost" type="button" id="logoutBtn" hidden>יציאה</button>
+    </div>
+  </header>
+
+  <!-- ============ LOGIN ============ -->
+  <section class="adm-card adm-login" id="loginView">
+    <h2>כניסת מנהל</h2>
+    <p class="adm-hint">הזינו את הסיסמה כדי לערוך את ההודעה הקופצת.</p>
+    <form id="loginForm">
+      <div class="adm-field">
+        <label for="pw">סיסמה</label>
+        <span class="adm-pw">
+          <input type="password" id="pw" autocomplete="current-password" required />
+          <button type="button" id="pwToggle" aria-pressed="false">הצגה</button>
+        </span>
+      </div>
+      <button class="btn btn-primary" type="submit" id="loginBtn">כניסה</button>
+    </form>
+  </section>
+
+  <!-- ============ EDITOR ============ -->
+  <div id="editorView" hidden>
+
+    <div class="adm-alert" id="setupAlert" hidden>
+      <b>המערכת עדיין לא מחוברת למאגר נתונים</b>
+      אפשר לערוך ולראות תצוגה מקדימה, אבל השמירה לא תעבוד עד שיושלם החיבור ב־Vercel:
+      <ol>
+        <li>Vercel → הפרויקט <code>morcafe</code> → לשונית <b>Storage</b> → <b>Create Database</b> → <b>Upstash for Redis</b> (מסלול חינמי) → לחבר לפרויקט.</li>
+        <li>Settings → Environment Variables → להוסיף <code>ADMIN_PASSWORD</code> עם הסיסמה הרצויה.</li>
+        <li>Deployments → <b>Redeploy</b>.</li>
+      </ol>
+    </div>
+
+    <div class="adm-switchcard" id="switchCard">
+      <div class="adm-state">
+        <span class="adm-dot" aria-hidden="true"></span>
+        <span>
+          <b id="stateTitle">ההודעה כבויה</b>
+          <span id="stateSub">המבקרים באתר לא רואים שום הודעה</span>
+        </span>
+      </div>
+      <button class="adm-switch" type="button" id="activeToggle" role="switch" aria-checked="false">
+        <span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">הצגת ההודעה באתר</span>
+      </button>
+    </div>
+
+    <section class="adm-card">
+      <h2>תוכן ההודעה</h2>
+      <p class="adm-hint">לחיצה על אחת התבניות ממלאת את השדות אוטומטית — ואפשר לערוך אחר כך.</p>
+
+      <div class="adm-presets" id="presets">
+        <button class="adm-preset" type="button" data-preset="event">סגור לאירוע פרטי</button>
+        <button class="adm-preset" type="button" data-preset="closed">סגור היום</button>
+        <button class="adm-preset" type="button" data-preset="hours">שעות פתיחה מיוחדות</button>
+        <button class="adm-preset" type="button" data-preset="news">הודעה כללית</button>
+      </div>
+
+      <div class="adm-field">
+        <label for="fEyebrow">כותרת קטנה מעל <span class="adm-sub">(למשל: הודעה חשובה)</span></label>
+        <input type="text" id="fEyebrow" maxlength="40" />
+      </div>
+
+      <div class="adm-field" id="wrapTitle">
+        <label for="fTitle">כותרת ראשית</label>
+        <input type="text" id="fTitle" maxlength="90" aria-describedby="errTitle" />
+        <div class="adm-count"><span id="cTitle">0</span>/90</div>
+        <p class="adm-err" id="errTitle" role="alert" hidden></p>
+      </div>
+
+      <div class="adm-field" id="wrapBody">
+        <label for="fBody">טקסט ההודעה</label>
+        <textarea id="fBody" maxlength="700" aria-describedby="errBody"></textarea>
+        <div class="adm-count"><span id="cBody">0</span>/700</div>
+        <p class="adm-err" id="errBody" role="alert" hidden></p>
+      </div>
+
+      <div class="adm-field">
+        <label for="fNote">שורת הדגשה <span class="adm-sub">(אופציונלי — למשל: נחזור מחר ב־8:30)</span></label>
+        <input type="text" id="fNote" maxlength="140" />
+      </div>
+
+      <div class="adm-row">
+        <div class="adm-field">
+          <label for="fCtaText">כפתור נוסף — טקסט <span class="adm-sub">(אופציונלי)</span></label>
+          <input type="text" id="fCtaText" maxlength="40" placeholder="לפרטים בוואטסאפ" />
+        </div>
+        <div class="adm-field" id="wrapHref">
+          <label for="fCtaHref">כפתור נוסף — קישור</label>
+          <input type="url" id="fCtaHref" dir="ltr" inputmode="url" placeholder="https://wa.me/972547792646" aria-describedby="errHref" />
+          <p class="adm-err" id="errHref" role="alert" hidden></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="adm-card">
+      <h2>ככה זה ייראה באתר</h2>
+      <p class="adm-hint">תצוגה מקדימה חיה — מתעדכנת תוך כדי הקלדה.</p>
+      <div class="adm-preview-stage">
+        <div class="mc-modal-card" id="previewCard">
+          <button class="mc-modal-close" type="button" tabindex="-1" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+              <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <div class="mc-modal-inner">
+            <p class="mc-modal-eyebrow" id="pvEyebrow"></p>
+            <h2 class="mc-modal-title" id="pvTitle"></h2>
+            <p class="mc-modal-body" id="pvBody"></p>
+            <p class="mc-modal-note" id="pvNote" hidden></p>
+            <div class="mc-modal-actions">
+              <a class="btn btn-gold mc-modal-cta" id="pvCta" href="#" hidden></a>
+              <span class="btn btn-primary">הבנתי, תודה</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="adm-card">
+      <h2>שינוי סיסמה אישית</h2>
+      <p class="adm-hint">אפשר לקבוע כאן סיסמה אישית לכניסה לפאנל הזה. הסיסמה שנקבעה ב־Vercel ממשיכה לעבוד גם היא כגיבוי — שתי הסיסמאות תקפות במקביל, כדי שלעולם לא תינעלו בחוץ. הסיסמה נשמרת מוצפנת (hash) ולא בטקסט גלוי.</p>
+      <div class="adm-row">
+        <div class="adm-field" id="wrapNewPw">
+          <label for="fNewPw">סיסמה חדשה <span class="adm-sub">(לפחות 8 תווים)</span></label>
+          <span class="adm-pw">
+            <input type="password" id="fNewPw" autocomplete="new-password" minlength="8" />
+            <button type="button" class="adm-pwtoggle" data-target="fNewPw" aria-pressed="false">הצגה</button>
+          </span>
+          <p class="adm-err" id="errNewPw" role="alert" hidden></p>
+        </div>
+        <div class="adm-field" id="wrapNewPw2">
+          <label for="fNewPw2">אימות סיסמה חדשה</label>
+          <span class="adm-pw">
+            <input type="password" id="fNewPw2" autocomplete="new-password" minlength="8" />
+            <button type="button" class="adm-pwtoggle" data-target="fNewPw2" aria-pressed="false">הצגה</button>
+          </span>
+          <p class="adm-err" id="errNewPw2" role="alert" hidden></p>
+        </div>
+      </div>
+      <button class="btn btn-primary" type="button" id="changePwBtn">עדכון סיסמה</button>
+    </section>
+  </div>
+</div>
+
+<div class="adm-savebar" id="saveBar" hidden>
+  <span class="adm-meta"><span id="savedMeta">—</span> <span class="adm-unsaved">· יש שינויים שלא נשמרו</span></span>
+  <span class="adm-actions">
+    <button class="btn btn-ghost" type="button" id="turnOffBtn">כיבוי מיידי</button>
+    <button class="btn btn-primary" type="button" id="saveBtn">שמירה ופרסום</button>
+  </span>
+</div>
+
+<div class="adm-toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var KEY_STORE = "morcafe-admin-key";
+  var API = "/api/banner";
+  var key = "";
+  var configured = true;
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  var f = {
+    eyebrow: $("fEyebrow"), title: $("fTitle"), body: $("fBody"),
+    note: $("fNote"), ctaText: $("fCtaText"), ctaHref: $("fCtaHref")
+  };
+
+  var PRESETS = {
+    event: {
+      eyebrow: "הודעה חשובה",
+      title: "העגלה סגורה זמנית",
+      body: "אנחנו נמצאים כרגע באירוע פרטי, ולכן העגלה סגורה.\nנשמח לראותכם שוב מיד לאחר מכן — תודה על ההבנה!",
+      note: "נחזור לפעילות רגילה מחר",
+      ctaText: "לפרטים בוואטסאפ",
+      ctaHref: "https://wa.me/972547792646"
+    },
+    closed: {
+      eyebrow: "שימו לב",
+      title: "היום אנחנו סגורים",
+      body: "העגלה סגורה היום ולא תפעל בשעות הרגילות.\nמתנצלים על אי הנוחות — נשמח לראותכם ביום הפעילות הקרוב.",
+      note: "",
+      ctaText: "",
+      ctaHref: ""
+    },
+    hours: {
+      eyebrow: "שעות מיוחדות",
+      title: "שינוי בשעות הפתיחה",
+      body: "השבוע אנחנו פועלים בשעות מיוחדות.\nמומלץ לבדוק לפני ההגעה — ואפשר תמיד לשלוח הודעה בוואטסאפ.",
+      note: "פתוח 08:30–11:30 בלבד",
+      ctaText: "לפרטים בוואטסאפ",
+      ctaHref: "https://wa.me/972547792646"
+    },
+    news: {
+      eyebrow: "חדש אצלנו",
+      title: "יש לנו עדכון בשבילכם",
+      body: "כתבו כאן את ההודעה שתופיע למבקרים באתר.",
+      note: "",
+      ctaText: "",
+      ctaHref: ""
+    }
+  };
+
+  /* --------------------------- toast --------------------------- */
+  var toastTimer = null;
+  function toast(msg, isErr) {
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.toggle("err", !!isErr);
+    t.classList.add("show");
+    window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(function () { t.classList.remove("show"); }, 4200);
+  }
+
+  /* --------------------------- state --------------------------- */
+  var active = false;
+
+  function setActive(next) {
+    active = !!next;
+    var card = $("switchCard");
+    card.classList.toggle("on", active);
+    $("activeToggle").setAttribute("aria-checked", active ? "true" : "false");
+    $("stateTitle").textContent = active ? "ההודעה מוצגת באתר" : "ההודעה כבויה";
+    $("stateSub").textContent = active
+      ? "כל מי שנכנס לאתר רואה את החלון הקופץ"
+      : "המבקרים באתר לא רואים שום הודעה";
+    syncSaveButtonLabel();
+  }
+
+  /* the button always describes exactly what clicking it will do — so it's
+     never ambiguous whether "save" also means "show this on the site"
+     (owner feedback: clicked Save while the switch was off, expected the
+     message to go live, got confused when it stayed hidden) */
+  function syncSaveButtonLabel() {
+    var btn = $("saveBtn");
+    if (btn.disabled) return; // mid-save "שומר…" state — don't fight it
+    btn.textContent = active ? "שמירה ופרסום" : "שמירת שינויים (ההודעה כבויה)";
+  }
+
+  function fill(banner) {
+    f.eyebrow.value = banner.eyebrow || "הודעה חשובה";
+    f.title.value = banner.title || "";
+    f.body.value = banner.body || "";
+    f.note.value = banner.note || "";
+    f.ctaText.value = banner.ctaText || "";
+    f.ctaHref.value = banner.ctaHref || "";
+    setActive(banner.active === true);
+    updateMeta(banner.updatedAt);
+    render();
+  }
+
+  function updateMeta(iso) {
+    if (!iso) { $("savedMeta").textContent = "טרם נשמרה הודעה"; return; }
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) { $("savedMeta").textContent = ""; return; }
+    $("savedMeta").textContent = "עדכון אחרון: " +
+      d.toLocaleDateString("he-IL") + " בשעה " +
+      d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function collect() {
+    return {
+      active: active,
+      eyebrow: f.eyebrow.value.trim(),
+      title: f.title.value.trim(),
+      body: f.body.value.trim(),
+      note: f.note.value.trim(),
+      ctaText: f.ctaText.value.trim(),
+      ctaHref: f.ctaHref.value.trim()
+    };
+  }
+
+  /* ---------------------- unsaved-changes tracking ---------------------- */
+  var savedSnapshot = "";
+
+  function markSaved() {
+    savedSnapshot = JSON.stringify(collect());
+    $("saveBar").classList.remove("dirty");
+  }
+  function checkDirty() {
+    $("saveBar").classList.toggle("dirty", JSON.stringify(collect()) !== savedSnapshot);
+  }
+  window.addEventListener("beforeunload", function (e) {
+    if ($("saveBar").classList.contains("dirty")) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  });
+
+  /* --------------------------- validation --------------------------- */
+  function showErr(wrapId, errId, msg) {
+    var wrap = $(wrapId), err = $(errId);
+    wrap.classList.toggle("has-err", !!msg);
+    err.textContent = msg || "";
+    err.hidden = !msg;
+  }
+
+  function validate(focusFirst) {
+    var b = collect();
+    var firstBad = null;
+
+    var missingText = b.active && !b.title && !b.body;
+    showErr("wrapTitle", "errTitle", missingText ? "צריך כותרת או טקסט כדי להדליק את ההודעה" : "");
+    showErr("wrapBody", "errBody", missingText ? "אפשר למלא רק אחד מהשניים" : "");
+    if (missingText) firstBad = f.title;
+
+    var badHref = !!(b.ctaHref && !/^(https?:\/\/|tel:|mailto:|www\.)/i.test(b.ctaHref));
+    showErr("wrapHref", "errHref", badHref ? "הקישור צריך להתחיל ב־https:// (או tel: לחיוג)" : "");
+    if (badHref && !firstBad) firstBad = f.ctaHref;
+
+    var missingHref = !!(b.ctaText && !b.ctaHref);
+    if (missingHref) showErr("wrapHref", "errHref", "כתבתם טקסט לכפתור — צריך גם קישור, אחרת הכפתור לא יוצג");
+    if (missingHref && !firstBad) firstBad = f.ctaHref;
+
+    var ok = !missingText && !badHref && !missingHref;
+    if (!ok && focusFirst && firstBad) firstBad.focus();
+    return ok;
+  }
+
+  /* re-validate on blur, never mid-typing */
+  [f.title, f.body, f.ctaHref, f.ctaText].forEach(function (input) {
+    input.addEventListener("blur", function () { validate(false); });
+  });
+
+  /* ------------------------- live preview ------------------------- */
+  function render() {
+    var b = collect();
+    $("pvEyebrow").textContent = b.eyebrow || "הודעה חשובה";
+    $("pvTitle").textContent = b.title || "כותרת ההודעה";
+    $("pvBody").textContent = b.body || "כאן יופיע הטקסט שתכתבו.";
+    var note = $("pvNote");
+    note.textContent = b.note;
+    note.hidden = !b.note;
+    var cta = $("pvCta");
+    var showCta = !!(b.ctaText && b.ctaHref);
+    cta.hidden = !showCta;
+    if (showCta) cta.textContent = b.ctaText;
+    $("cTitle").textContent = f.title.value.length;
+    $("cBody").textContent = f.body.value.length;
+    if (!$("saveBar").hidden) checkDirty();
+  }
+
+  Object.keys(f).forEach(function (k) { f[k].addEventListener("input", render); });
+
+  $("presets").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-preset]");
+    if (!btn) return;
+    var p = PRESETS[btn.getAttribute("data-preset")];
+    if (!p) return;
+    f.eyebrow.value = p.eyebrow;
+    f.title.value = p.title;
+    f.body.value = p.body;
+    f.note.value = p.note;
+    f.ctaText.value = p.ctaText;
+    f.ctaHref.value = p.ctaHref;
+    render();
+    toast("התבנית מולאה — אפשר לערוך ואז לשמור");
+  });
+
+  $("activeToggle").addEventListener("click", function () {
+    setActive(!active);
+    validate(false);
+    render();
+  });
+
+  $("pwToggle").addEventListener("click", function () {
+    var input = $("pw");
+    var reveal = input.type === "password";
+    input.type = reveal ? "text" : "password";
+    this.textContent = reveal ? "הסתרה" : "הצגה";
+    this.setAttribute("aria-pressed", reveal ? "true" : "false");
+    input.focus();
+  });
+
+  /* generic reveal toggle for the change-password fields */
+  document.querySelectorAll(".adm-pwtoggle").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var input = $(btn.getAttribute("data-target"));
+      var reveal = input.type === "password";
+      input.type = reveal ? "text" : "password";
+      btn.textContent = reveal ? "הסתרה" : "הצגה";
+      btn.setAttribute("aria-pressed", reveal ? "true" : "false");
+      input.focus();
+    });
+  });
+
+  /* ------------------------- change password ------------------------- */
+  $("changePwBtn").addEventListener("click", function () {
+    var p1 = $("fNewPw").value;
+    var p2 = $("fNewPw2").value;
+    var err1 = $("errNewPw"), err2 = $("errNewPw2");
+    err1.hidden = true; err1.textContent = "";
+    err2.hidden = true; err2.textContent = "";
+    $("wrapNewPw").classList.remove("has-err");
+    $("wrapNewPw2").classList.remove("has-err");
+
+    if (p1.length < 8) {
+      $("wrapNewPw").classList.add("has-err");
+      err1.textContent = "הסיסמה חייבת להיות באורך 8 תווים לפחות";
+      err1.hidden = false;
+      $("fNewPw").focus();
+      return;
+    }
+    if (p1 !== p2) {
+      $("wrapNewPw2").classList.add("has-err");
+      err2.textContent = "הסיסמאות לא תואמות";
+      err2.hidden = false;
+      $("fNewPw2").focus();
+      return;
+    }
+
+    var btn = $("changePwBtn");
+    btn.disabled = true;
+    btn.textContent = "מעדכן…";
+    request("POST", { action: "changePassword", newPassword: p1 }).then(function (res) {
+      btn.disabled = false;
+      btn.textContent = "עדכון סיסמה";
+      if (res.ok && res.data.ok) {
+        // keep this session working seamlessly with the new password
+        key = p1;
+        try { window.sessionStorage.setItem(KEY_STORE, key); } catch (e) { /* ignore */ }
+        $("fNewPw").value = "";
+        $("fNewPw2").value = "";
+        toast("הסיסמה עודכנה! השתמשו בה מהכניסה הבאה (הסיסמה הקודמת מ-Vercel עדיין תקפה גם היא)");
+      } else if (res.status === 401) {
+        toast("פג תוקף ההתחברות. יש להיכנס מחדש.", true);
+        logout();
+      } else {
+        toast(res.data.message || "עדכון הסיסמה נכשל.", true);
+      }
+    }).catch(function () {
+      btn.disabled = false;
+      btn.textContent = "עדכון סיסמה";
+      toast("אין חיבור לשרת.", true);
+    });
+  });
+
+  /* ----------------------------- api ----------------------------- */
+  function request(method, payload) {
+    var opts = { method: method, headers: { "x-admin-key": key, "Accept": "application/json" } };
+    if (payload) {
+      opts.headers["Content-Type"] = "application/json";
+      opts.body = JSON.stringify(payload);
+    }
+    return window.fetch(API, opts).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) {
+        return { status: r.status, ok: r.ok, data: data };
+      });
+    });
+  }
+
+  function loadAndShowEditor() {
+    return request("GET").then(function (res) {
+      configured = res.data.configured !== false;
+      $("setupAlert").hidden = configured;
+      fill(res.data.banner || {});
+      $("loginView").hidden = true;
+      $("editorView").hidden = false;
+      $("saveBar").hidden = false;
+      $("logoutBtn").hidden = false;
+      markSaved();
+    });
+  }
+
+  function save(skipValidation) {
+    if (!skipValidation && !validate(true)) {
+      toast("צריך לתקן שדה אחד לפני השמירה", true);
+      return;
+    }
+    var btn = $("saveBtn");
+    btn.disabled = true;
+    btn.textContent = "שומר…";
+    var wasActive = active;
+    request("POST", { action: "save", banner: collect() }).then(function (res) {
+      btn.disabled = false;
+      syncSaveButtonLabel();
+      if (res.ok && res.data.ok) {
+        updateMeta(res.data.banner && res.data.banner.updatedAt);
+        markSaved();
+        toast(wasActive ? "נשמר! ההודעה תופיע באתר תוך כמה שניות" : "נשמר! ההודעה כבויה ולא מוצגת באתר");
+      } else if (res.status === 401) {
+        toast("פג תוקף ההתחברות. יש להיכנס מחדש.", true);
+        logout();
+      } else {
+        toast(res.data.message || "השמירה נכשלה. נסו שוב.", true);
+      }
+    }).catch(function () {
+      btn.disabled = false;
+      syncSaveButtonLabel();
+      toast("אין חיבור לשרת. בדקו את האינטרנט ונסו שוב.", true);
+    });
+  }
+
+  $("saveBtn").addEventListener("click", function () { save(false); });
+
+  /* turning it off is always valid, even with empty fields */
+  $("turnOffBtn").addEventListener("click", function () {
+    setActive(false);
+    validate(false);
+    render();
+    save(true);
+  });
+
+  /* ---------------------------- login ---------------------------- */
+  $("loginForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var btn = $("loginBtn");
+    var value = $("pw").value;
+    if (!value) return;
+    btn.disabled = true;
+    btn.textContent = "בודק…";
+    key = value;
+    request("POST", { action: "verify" }).then(function (res) {
+      btn.disabled = false;
+      btn.textContent = "כניסה";
+      if (res.ok && res.data.ok) {
+        try { window.sessionStorage.setItem(KEY_STORE, key); } catch (err) { /* ignore */ }
+        $("pw").value = "";
+        return loadAndShowEditor();
+      }
+      key = "";
+      toast(res.data.message || "סיסמה שגויה.", true);
+      $("pw").select();
+      $("pw").focus();
+    }).catch(function () {
+      btn.disabled = false;
+      btn.textContent = "כניסה";
+      key = "";
+      toast("אין חיבור לשרת.", true);
+      $("pw").focus();
+    });
+  });
+
+  function logout() {
+    key = "";
+    $("saveBar").classList.remove("dirty");
+    try { window.sessionStorage.removeItem(KEY_STORE); } catch (e) { /* ignore */ }
+    $("editorView").hidden = true;
+    $("saveBar").hidden = true;
+    $("logoutBtn").hidden = true;
+    $("loginView").hidden = false;
+  }
+  $("logoutBtn").addEventListener("click", function () {
+    if ($("saveBar").classList.contains("dirty") &&
+        !window.confirm("יש שינויים שלא נשמרו. לצאת בלי לשמור?")) return;
+    logout();
+  });
+
+  /* ------------------------- session resume ------------------------- */
+  var saved = "";
+  try { saved = window.sessionStorage.getItem(KEY_STORE) || ""; } catch (e) { saved = ""; }
+  if (saved) {
+    key = saved;
+    request("POST", { action: "verify" }).then(function (res) {
+      if (res.ok && res.data.ok) return loadAndShowEditor();
+      logout();
+    }).catch(function () { logout(); });
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

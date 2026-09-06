@@ -1052,3 +1052,174 @@ html.a11y-cursor a, html.a11y-cursor button {
 @media (min-width: 1024px) {
   .hero-desc { font-size: 1.15rem; }
 }
+
+/* ============================================================
+   ANNOUNCEMENT MODAL — ההודעה הקופצת
+   Built by assets/js/banner.js from /api/banner.
+
+   Form follows the artifact: when the cart closes for an event the
+   owner tapes a note up. So this is a sheet of the brand's paper with
+   a strip of masking tape over the top edge and the same barely-there
+   tilt as the taped snapshots in "רגעים מהעגלה" — not a generic
+   notice dialog wearing brand colours. Tilt goes flat on mobile,
+   matching the .moments-grid rule the owner asked for.
+
+   Literal colours are used where the a11y dark-mode token flip would
+   invert them the wrong way (backdrop, tape).
+   ============================================================ */
+.mc-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: grid;
+  place-items: center;
+  padding: 20px 16px;
+  overflow-y: auto;
+  opacity: 0;
+  transition: opacity .28s ease;
+}
+.mc-modal.is-open { opacity: 1; }
+
+.mc-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 14, 12, .62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+body.mc-modal-lock { overflow: hidden; }
+
+.mc-modal-card {
+  --mc-tilt: -0.8deg;      /* the pinned-up angle; flattened on mobile */
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 580px;
+  margin: auto;
+  background: var(--paper);
+  background-image: var(--doodles);
+  background-size: 240px 240px;
+  border: 2.5px solid var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: 6px 6px 0 var(--ink), var(--shadow-lg);
+  transform: translateY(18px) scale(.96) rotate(var(--mc-tilt));
+  transition: transform .34s cubic-bezier(.2, .9, .3, 1.25);
+}
+.mc-modal.is-open .mc-modal-card { transform: rotate(var(--mc-tilt)); }
+.mc-modal-card:focus { outline: none; }
+
+/* the masking tape holding the note up — same device as the taped
+   snapshots, on-palette rose instead of the old amber */
+.mc-modal-card::before {
+  content: "";
+  position: absolute;
+  top: -17px;
+  left: 50%;
+  width: 138px;
+  height: 34px;
+  transform: translateX(-50%) rotate(-2.4deg);
+  background: rgba(229, 138, 160, .62);
+  border-radius: 2px;
+  box-shadow: 0 2px 7px rgba(80, 40, 45, .18);
+  pointer-events: none;
+}
+
+.mc-modal-close {
+  position: absolute;
+  top: 14px;
+  inset-inline-end: 14px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  padding: 0;
+  background: var(--white);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  box-shadow: var(--pop-sm);
+  cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+}
+.mc-modal-close:hover { background: var(--honey); transform: translate(-1px, -1px); box-shadow: var(--pop); }
+
+.mc-modal-inner {
+  padding: 54px 26px 30px;
+  text-align: center;
+}
+
+.mc-modal-eyebrow {
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 1.6rem;
+  line-height: 1.2;
+  letter-spacing: .1em;
+  color: var(--blue);
+  margin-bottom: 2px;
+}
+
+.mc-modal-title {
+  font-family: var(--display);
+  font-weight: 700;
+  line-height: .96;
+  font-size: clamp(2.5rem, 8.5vw, 3.5rem);
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+
+.mc-modal-body {
+  font-size: 1.08rem;
+  line-height: 1.68;
+  color: var(--ink);
+  white-space: pre-line;
+  max-width: 44ch;
+  margin-inline: auto;
+}
+
+.mc-modal-note {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: var(--sand);
+  border: 2px solid var(--ink);
+  font-weight: 800;
+  font-size: .95rem;
+  color: var(--ink);
+}
+
+.mc-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+.mc-modal-actions .btn { font-size: 1.02rem; padding: 14px 28px; }
+
+/* phones: straighten the note, exactly like .moments-grid does — the
+   owner reads tilt on a full-width card as "crooked", not "pinned up" */
+@media (max-width: 719.98px) {
+  .mc-modal-card { --mc-tilt: 0deg; }
+}
+
+@media (max-width: 480px) {
+  .mc-modal { padding: 14px 12px; }
+  .mc-modal-inner { padding: 48px 18px 26px; }
+  .mc-modal-card::before { width: 116px; height: 30px; top: -15px; }
+  .mc-modal-actions .btn { width: 100%; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-modal { transition: none; opacity: 1; }
+  /* the tilt is position, not motion — keep it, drop the animation */
+  .mc-modal-card,
+  .mc-modal.is-open .mc-modal-card { transition: none; transform: rotate(var(--mc-tilt)); }
+}
+
+/* dark high-contrast mode (a11y widget) */
+html.a11y-dark .mc-modal-backdrop { background: rgba(0, 0, 0, .82); }
+html.a11y-dark .mc-modal-card { background: #1E1E1E; box-shadow: 6px 6px 0 #fff; }
+html.a11y-dark .mc-modal-card::before { background: rgba(242, 160, 180, .5); }
+html.a11y-dark .mc-modal-close { background: #fff; color: #000; }
