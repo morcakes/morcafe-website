@@ -217,9 +217,9 @@
       אפשר לערוך ולראות תצוגה מקדימה, אבל השמירה לא תעבוד עד שיושלם החיבור ב־Vercel:
       <ol>
         <li>Vercel → הפרויקט <code>morcafe</code> → לשונית <b>Storage</b> → <b>Create Database</b> → <b>Upstash for Redis</b> (מסלול חינמי) → לחבר לפרויקט.</li>
-        <li>Settings → Environment Variables → להוסיף <code>ADMIN_PASSWORD</code> עם הסיסמה הרצויה.</li>
         <li>Deployments → <b>Redeploy</b>.</li>
       </ol>
+      אין צורך בהגדרת סיסמה נפרדת ב-Environment Variables — הכניסה הראשונה נעשית עם סיסמת ברירת המחדל, ומיד אחר כך קובעים סיסמה אישית בתיבה "שינוי סיסמה אישית" למטה.
     </div>
 
     <div class="adm-switchcard" id="switchCard">
@@ -309,7 +309,7 @@
 
     <section class="adm-card">
       <h2>שינוי סיסמה אישית</h2>
-      <p class="adm-hint">אפשר לקבוע כאן סיסמה אישית לכניסה לפאנל הזה. הסיסמה שנקבעה ב־Vercel ממשיכה לעבוד גם היא כגיבוי — שתי הסיסמאות תקפות במקביל, כדי שלעולם לא תינעלו בחוץ. הסיסמה נשמרת מוצפנת (hash) ולא בטקסט גלוי.</p>
+      <p class="adm-hint">אפשר לקבוע כאן סיסמה אישית לכניסה לפאנל הזה — היא נשמרת מוצפנת (hash) ולא בטקסט גלוי. ברגע שהיא נשמרת, סיסמת ברירת המחדל המובנית מפסיקה לעבוד לצמיתות. אם הוגדרה גם סיסמה ב־Vercel (ADMIN_PASSWORD), היא ממשיכה לעבוד במקביל כגיבוי נוסף.</p>
       <div class="adm-row">
         <div class="adm-field" id="wrapNewPw">
           <label for="fNewPw">סיסמה חדשה <span class="adm-sub">(לפחות 8 תווים)</span></label>
@@ -614,7 +614,7 @@
         try { window.sessionStorage.setItem(KEY_STORE, key); } catch (e) { /* ignore */ }
         $("fNewPw").value = "";
         $("fNewPw2").value = "";
-        toast("הסיסמה עודכנה! השתמשו בה מהכניסה הבאה (הסיסמה הקודמת מ-Vercel עדיין תקפה גם היא)");
+        toast("הסיסמה עודכנה! השתמשו בה מהכניסה הבאה.");
       } else if (res.status === 401) {
         toast("פג תוקף ההתחברות. יש להיכנס מחדש.", true);
         logout();

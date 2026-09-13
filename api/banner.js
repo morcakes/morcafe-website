@@ -9,20 +9,28 @@
    Zero dependencies on purpose — this stays a static site, no build step.
 
    AUTH (Sep 2026 — owner asked for an encrypted, self-changeable password
-   instead of only the Vercel-dashboard env var):
-     Two valid credentials, either one works:
-       1) ADMIN_PASSWORD env var — the "recovery key," set once in Vercel
-          Settings → Environment Variables. Requires Vercel dashboard
-          access to view/change — a safety net if the personal password
-          below is ever forgotten.
-       2) A personal password the owner sets from the admin panel itself
+   that never requires touching Vercel's Environment Variables screen):
+     Up to three credentials can grant access; whichever apply are checked
+     in this order, first match wins:
+       1) ADMIN_PASSWORD env var — OPTIONAL. Only relevant if someone sets
+          it manually in Vercel Settings → Environment Variables. Not
+          required for the system to work at all.
+       2) The personal password the owner set from the admin panel itself
           ("שינוי סיסמה") — stored ONLY as a salted scrypt hash in the KV
           store (key morcafe:adminAuth). The plain password is never
           written anywhere, only this one-way hash.
-     Every login attempt is checked against both; it's accepted if either
-     matches. Failed attempts are rate-limited per IP, persisted in the KV
-     store when available (survives cold starts / multiple regions),
-     falling back to an in-memory counter when no store is configured yet.
+       3) BOOTSTRAP_PASSWORD (below) — a one-time default baked into this
+          file, valid ONLY until a personal password has been set (i.e.
+          only while morcafe:adminAuth doesn't exist yet). The instant a
+          personal password is saved via the panel, this stops being
+          accepted, permanently — the standard "default password you must
+          change on first login" pattern. This is what lets first setup
+          skip Vercel's dashboard entirely: connect the database, open
+          /admin.html, log in with BOOTSTRAP_PASSWORD, immediately set a
+          personal password.
+     Failed attempts are rate-limited per IP, persisted in the KV store
+     when available (survives cold starts / multiple regions), falling
+     back to an in-memory counter when no store is configured yet.
    ========================================================= */
 "use strict";
 
@@ -33,6 +41,12 @@ const AUTH_KEY = "morcafe:adminAuth";
 const MIN_PASSWORD_LEN = 8;
 const MAX_ATTEMPTS = 8;
 const LOCKOUT_SECONDS = 600; // 10 minutes
+
+/* One-time default login — works ONLY until a personal password has been
+   set via the admin panel (see checkAuth below). Change it immediately
+   after first login using "שינוי סיסמה". This is what lets first setup
+   skip Vercel's Environment Variables screen entirely. */
+const BOOTSTRAP_PASSWORD = "MorCafe-Bootstrap-2026!";
 
 const DEFAULTS = {
   active: false,
@@ -162,16 +176,30 @@ function verifyPasswordHash(password, record) {
   return crypto.timingSafeEqual(a, b);
 }
 
-/* two valid credentials — either is accepted (see file header) */
+/* up to three credentials can grant access — see file header for the order
+   and the bootstrap-retirement rule */
 async function checkAuth(givenKey) {
   if (!givenKey || typeof givenKey !== "string") return false;
+
   const envPw = process.env.ADMIN_PASSWORD || "";
   if (envPw && safeEqual(givenKey, envPw)) return true;
+
+  let auth = null;
   try {
-    const auth = await readAuth();
-    if (auth && verifyPasswordHash(givenKey, auth)) return true;
-  } catch (e) { /* store hiccup — fall through to false */ }
-  return false;
+    auth = await readAuth();
+  } catch (e) {
+    // can't reach the store to check — fail CLOSED (deny), never fall back
+    // to the bootstrap default here, or a transient hiccup would let it
+    // bypass a personal password that's actually already been set
+    return false;
+  }
+
+  if (auth) return verifyPasswordHash(givenKey, auth);
+
+  // no personal password has been set yet — the one-time bootstrap default
+  // is still live. The moment a personal password is saved, `auth` above
+  // will be truthy on every future call and this line stops being reached.
+  return safeEqual(givenKey, BOOTSTRAP_PASSWORD);
 }
 
 /* -------------------------- brute-force protection -------------------------- */
