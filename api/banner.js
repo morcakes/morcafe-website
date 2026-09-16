@@ -5,8 +5,16 @@
    POST /api/banner  → { action: "verify" | "save" | "changePassword" }
                         (needs header x-admin-key)
 
-   Storage: Upstash Redis REST (Vercel Marketplace).
-   Zero dependencies on purpose — this stays a static site, no build step.
+   Storage: Vercel's native Redis (Marketplace) — connected as a plain
+   `REDIS_URL` connection string, not a REST API. This is a real (tiny)
+   dependency on the `redis` npm client, the one exception to keeping the
+   site build-free — Vercel installs it automatically from package.json.
+   (Sep 2026: an earlier version of this file assumed the classic Upstash
+   REST-style integration, KV_REST_API_URL + KV_REST_API_TOKEN — the
+   project ended up with Vercel's newer native Redis product instead,
+   which only exposes REDIS_URL, so the storage layer below was rewritten
+   to use a real Redis client. Everything above the storage layer —
+   auth, rate limiting, sanitizing, the handler — is unchanged.)
 
    AUTH (Sep 2026 — owner asked for an encrypted, self-changeable password
    that never requires touching Vercel's Environment Variables screen):
@@ -64,69 +72,78 @@ const LIMITS = { eyebrow: 40, title: 90, body: 700, note: 140, ctaText: 40, ctaH
 
 /* ---------------------------------- store ---------------------------------- */
 
+const { createClient } = require("redis");
+
+/* module-level singleton so warm serverless instances reuse one open
+   connection across requests instead of reconnecting every time */
+let redisClientPromise = null;
+
 function store() {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || "";
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || "";
-  if (!url || !token) return null;
-  return { url: url.replace(/\/+$/, ""), token };
+  return !!process.env.REDIS_URL;
+}
+
+function getClient() {
+  if (!store()) return null;
+  if (!redisClientPromise) {
+    const client = createClient({
+      url: process.env.REDIS_URL,
+      socket: { connectTimeout: 5000 },
+    });
+    // required by the redis v4 client — otherwise an unhandled 'error'
+    // event would crash the whole function process
+    client.on("error", function (err) {
+      console.error("[api/banner] redis client error:", err && err.message);
+    });
+    redisClientPromise = client.connect().then(
+      function () { return client; },
+      function (err) {
+        redisClientPromise = null; // let the next call retry a fresh connection
+        throw err;
+      }
+    );
+  }
+  return redisClientPromise;
 }
 
 async function kvGet(key) {
-  const s = store();
-  if (!s) return null;
-  const res = await fetch(s.url + "/get/" + encodeURIComponent(key), {
-    headers: { Authorization: "Bearer " + s.token },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error("store read failed (" + res.status + ")");
-  const data = await res.json();
-  return data && data.result != null ? data.result : null;
+  const clientP = getClient();
+  if (!clientP) return null;
+  const client = await clientP;
+  const val = await client.get(key);
+  return val == null ? null : val;
 }
 
 async function kvSet(key, rawValue) {
-  const s = store();
-  if (!s) throw new Error("store not configured");
-  const res = await fetch(s.url + "/set/" + encodeURIComponent(key), {
-    method: "POST",
-    headers: { Authorization: "Bearer " + s.token, "Content-Type": "text/plain" },
-    body: rawValue,
-  });
-  if (!res.ok) throw new Error("store write failed (" + res.status + ")");
+  const clientP = getClient();
+  if (!clientP) throw new Error("store not configured");
+  const client = await clientP;
+  await client.set(key, rawValue);
 }
 
 /* best-effort helpers for the rate-limit counters — a store hiccup here
    must never block a real login, so these swallow their own errors */
 async function kvIncr(key) {
-  const s = store();
-  if (!s) return null;
+  const clientP = getClient();
+  if (!clientP) return null;
   try {
-    const res = await fetch(s.url + "/incr/" + encodeURIComponent(key), {
-      method: "POST",
-      headers: { Authorization: "Bearer " + s.token },
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return typeof data.result === "number" ? data.result : null;
+    const client = await clientP;
+    return await client.incr(key);
   } catch (e) { return null; }
 }
 async function kvExpire(key, seconds) {
-  const s = store();
-  if (!s) return;
+  const clientP = getClient();
+  if (!clientP) return;
   try {
-    await fetch(s.url + "/expire/" + encodeURIComponent(key) + "/" + seconds, {
-      method: "POST",
-      headers: { Authorization: "Bearer " + s.token },
-    });
+    const client = await clientP;
+    await client.expire(key, seconds);
   } catch (e) { /* best effort */ }
 }
 async function kvDel(key) {
-  const s = store();
-  if (!s) return;
+  const clientP = getClient();
+  if (!clientP) return;
   try {
-    await fetch(s.url + "/del/" + encodeURIComponent(key), {
-      method: "POST",
-      headers: { Authorization: "Bearer " + s.token },
-    });
+    const client = await clientP;
+    await client.del(key);
   } catch (e) { /* best effort */ }
 }
 

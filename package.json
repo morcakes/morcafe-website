@@ -1,0 +1,8 @@
+{
+  "name": "morcafe-website",
+  "private": true,
+  "description": "Static site for MorCafe — the only build step is installing the one dependency api/banner.js needs to talk to Vercel's Redis storage.",
+  "dependencies": {
+    "redis": "^4.7.0"
+  }
+}
