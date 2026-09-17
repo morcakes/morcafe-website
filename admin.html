@@ -506,7 +506,7 @@
     if (badHref && !firstBad) firstBad = f.ctaHref;
 
     var missingHref = !!(b.ctaText && !b.ctaHref);
-    if (missingHref) showErr("wrapHref", "errHref", "כתבתם טקסט לכפתור — צרי�� גם קישור, אחרת הכפתור לא יוצג");
+    if (missingHref) showErr("wrapHref", "errHref", "כתבתם טקסט לכפתור — צריך גם קישור, אחרת הכפתור לא יוצג");
     if (missingHref && !firstBad) firstBad = f.ctaHref;
 
     var ok = !missingText && !badHref && !missingHref;
