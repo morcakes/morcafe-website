@@ -3,6 +3,7 @@
   "private": true,
   "description": "Static site for MorCafe — the only build step is installing the one dependency api/banner.js needs to talk to Vercel's Redis storage.",
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "redis": "^4.7.0"
   }
 }
